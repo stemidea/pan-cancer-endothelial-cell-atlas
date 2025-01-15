@@ -1,0 +1,63 @@
+# Define the directories
+SEURAT_DIR = "./seurat"
+DATA_DIR = "./data"
+OUTPUT_DIR = "./output"
+
+rule all:
+    input:
+        "output/atlas.combined.rds",
+        "output/clustered_atlas.rds",
+        "output/singleR_annotated_atlas.rds"
+
+# Step 1: Create Seurat objects from the data
+rule create_seurat_objects:
+    input:
+        script="create.R",
+        data_dir=DATA_DIR
+    output:
+        seurat_dir=directory(SEURAT_DIR)
+    shell:
+        """
+        Rscript {input.script}
+        """
+
+# Step 2: Integrate Seurat objects using CCA
+rule integrate_seurat_objects:
+    input:
+        script="integrate.cca.R",
+        seurat_dir=directory(SEURAT_DIR)
+    output:
+        integrated_atlas="output/atlas.combined.rds"
+    shell:
+        """
+        Rscript {input.script}
+        """
+
+# Step 3: Perform clustering
+rule cluster:
+    input:
+        script="cluster.R",
+        atlas="output/atlas.combined.rds"
+    output:
+        clustered_atlas="output/clustered_atlas.rds"
+    params:
+        res=1,
+        mt_threshold=20,
+        out_dir="output/clustering_res1mt20"
+    shell:
+        """
+        Rscript {input.script} {params.res} {params.mt_threshold} {params.out_dir}
+        """
+
+# Step 4: Annotate clusters using SingleR
+rule annotate_singleR:
+    input:
+        script="annotate.singleR.R",
+        clustered_atlas="output/clustered_atlas.rds"
+    output:
+        annotated_atlas="output/singleR_annotated_atlas.rds"
+    shell:
+        """
+        Rscript {input.script}
+        """
+

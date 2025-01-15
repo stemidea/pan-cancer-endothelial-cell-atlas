@@ -1,0 +1,49 @@
+# Define paths
+DATA_DIR = "data"
+SCRIPT_DIR = "scripts"
+OUTPUT_DIR = "outputs"
+
+# Define rules
+rule all:
+    input:
+        # Final outputs of the pipeline
+        OUTPUT_DIR + "/cytoTRACE/cytotrace.rds",
+        OUTPUT_DIR + "/monocle2/monocle.rds",
+        OUTPUT_DIR + "/slingshot/slingshot.rds"
+
+rule cytoTRACE:
+    input:
+        atlas = DATA_DIR + "/atlas.rds",
+        script = SCRIPT_DIR + "/cytoTRACE.R"
+    output:
+        results = OUTPUT_DIR + "/cytoTRACE/cytotrace.rds"
+    shell:
+        """
+        mkdir -p {OUTPUT_DIR}/cytoTRACE
+        Rscript {input.script} {input.atlas} {output.results}
+        """
+
+rule monocle2:
+    input:
+        atlas = DATA_DIR + "/atlas.rds",
+        script = SCRIPT_DIR + "/monocle2.R"
+    output:
+        results = OUTPUT_DIR + "/monocle2/monocle.rds"
+    shell:
+        """
+        mkdir -p {OUTPUT_DIR}/monocle2
+        Rscript {input.script} {input.atlas} {output.results}
+        """
+
+rule slingshot:
+    input:
+        atlas = DATA_DIR + "/atlas.rds",
+        script = SCRIPT_DIR + "/slingshot.R"
+    output:
+        results = OUTPUT_DIR + "/slingshot/slingshot.rds"
+    shell:
+        """
+        mkdir -p {OUTPUT_DIR}/slingshot
+        Rscript {input.script} {input.atlas} {output.results}
+        """
+
